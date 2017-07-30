@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>redis集群部署 | natscat&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="最近写的项目用到了redis数据库，而redis在3.0版本后支持了redis集群部署，所以考虑在自己的项目里面使用redis集群存储数据。现在把部署redis集群的过程记录一下，以备不时之需。 我是在两台云主机114.80.212.194 118.119.254.205上部署redis集群的，最后部署的命令中会替换成你自己的ip。">
+<meta name="keywords" content="redis cluster">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redis集群部署">
+<meta property="og:url" content="http://yoursite.com/2017/04/21/redis集群部署/index.html">
+<meta property="og:site_name" content="natscat&#39;s blog">
+<meta property="og:description" content="最近写的项目用到了redis数据库，而redis在3.0版本后支持了redis集群部署，所以考虑在自己的项目里面使用redis集群存储数据。现在把部署redis集群的过程记录一下，以备不时之需。 我是在两台云主机114.80.212.194 118.119.254.205上部署redis集群的，最后部署的命令中会替换成你自己的ip。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-04-21T07:52:53.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="redis集群部署">
+<meta name="twitter:description" content="最近写的项目用到了redis数据库，而redis在3.0版本后支持了redis集群部署，所以考虑在自己的项目里面使用redis集群存储数据。现在把部署redis集群的过程记录一下，以备不时之需。 我是在两台云主机114.80.212.194 118.119.254.205上部署redis集群的，最后部署的命令中会替换成你自己的ip。">
+  
+    <link rel="alternate" href="/atom.xml" title="natscat&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">natscat&#39;s blog</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">一个弱鸡</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Søk"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-redis集群部署" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/04/21/redis集群部署/" class="article-date">
+  <time datetime="2017-04-21T06:42:30.000Z" itemprop="datePublished">2017-04-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/redis/">redis</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      redis集群部署
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>最近写的项目用到了redis数据库，而redis在3.0版本后支持了redis集群部署，所以考虑在自己的项目里面使用redis集群存储数据。现在把部署redis集群的过程记录一下，以备不时之需。</p>
+<p>我是在两台云主机<code>114.80.212.194</code> <code>118.119.254.205</code>上部署redis集群的，最后部署的命令中会替换成你自己的ip。</p>
+<a id="more"></a>
+<ol>
+<li><p>安装最新版本的redis(仅供参考，redis版本可能会不一样)</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">cd /home/soft</div><div class="line">wget http://download.redis.io/releases/redis-3.2.8.tar.gz</div><div class="line">tar xzvf redis-3.2.8.tar.gz</div><div class="line">cd redis-3.2.8</div><div class="line">make </div><div class="line">make install</div></pre></td></tr></table></figure>
+</li>
+<li><p>创建集群所需目录结构(7000, 7001, 7002是redis集群部署的接口)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">cd /home/soft</div><div class="line">mkdir cluster</div><div class="line">mkdir 7000 7001 7002</div></pre></td></tr></table></figure>
+</li>
+<li><p>修改redis.conf</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cp /home/soft/redis-3.2.8/redis.conf /home/soft/cluster</div></pre></td></tr></table></figure>
+<p>redis.conf修改内容</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">port 7000 (下一步这个地方需要随着端口修改)</div><div class="line">cluster-enabled yes</div><div class="line">cluster-config-file nodes-7000.conf</div><div class="line">cluster-node-timeout 5000</div><div class="line">appendonly yes</div><div class="line">bind 114.80.212.194 (部署机器的ip)</div></pre></td></tr></table></figure>
+<p>复制</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">cp /home/soft/cluster/redis.conf /home/soft/cluster/7000/redis.conf</div><div class="line">cp /home/soft/cluster/redis.conf /home/soft/cluster/7001/redis.conf</div><div class="line">cp /home/soft/cluster/redis.conf /home/soft/cluster/7002/redis.conf</div></pre></td></tr></table></figure>
+</li>
+<li><p>启动redis server</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">redis-server /home/soft/cluster/7000/redis.conf</div><div class="line">redis-server /home/soft/cluster/7001/redis.conf</div><div class="line">redis-server /home/soft/cluster/7002/redis.conf</div></pre></td></tr></table></figure>
+</li>
+<li><p>部署</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cd /home/soft/redis-3.2.8/src</div><div class="line"> ./redis-trib.rb create --replicas 1 114.80.212.194:7000 114.80.212.194:7001 114.80.212.194:7002 118.119.254.205:7000 118.119.254.205:7001 118.119.254.205:7002</div></pre></td></tr></table></figure>
+<p>​</p>
+</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/04/21/redis集群部署/" data-id="cj5qqj08k0000kyzrn28i4d0j" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/redis-cluster/">redis cluster</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Kategorier</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/redis/">redis</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis-cluster/">redis cluster</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/redis-cluster/" style="font-size: 10px;">redis cluster</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Arkiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Siste innlegg</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/04/21/redis集群部署/">redis集群部署</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 natscat<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
